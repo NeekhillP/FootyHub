@@ -1,5 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+  isAdminRoute,
+  isAuthRoute,
+  isProtectedRoute,
+} from '@/lib/auth/routes'
+
+async function getUserRole(
+  supabase: ReturnType<typeof createServerClient>,
+  userId: string
+): Promise<string> {
+  const { data } = await supabase.from('users').select('role').eq('id', userId).single()
+  return data?.role ?? 'user'
+}
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -27,23 +40,40 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Do NOT remove user fetching logic. This refreshes the session if expired.
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect admin routes
   const pathname = request.nextUrl.pathname
-  if (pathname.startsWith('/admin')) {
-    // Check if authenticated user is admin
-    // Note: For now during Milestone 0 we allow access if in development,
-    // but structure it to enforce admin role checks when Auth is active.
-    const userRole = user?.app_metadata?.role || 'user'
-    if (!user || userRole !== 'admin') {
+
+  if (isProtectedRoute(pathname) && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('next', pathname)
+    return NextResponse.redirect(url)
+  }
+
+  if (isAdminRoute(pathname)) {
+    if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
+      url.searchParams.set('next', pathname)
       return NextResponse.redirect(url)
     }
+
+    const role = await getUserRole(supabase, user.id)
+
+    if (role !== 'admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/forbidden'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  if (user && isAuthRoute(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/profile'
+    return NextResponse.redirect(url)
   }
 
   return supabaseResponse

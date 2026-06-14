@@ -1,7 +1,16 @@
-export default function Page() {
+import { RegisterForm } from '@/components/auth/register-form'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+export default function RegisterPage() {
   return (
-    <div className="p-8">
-      <h1 className="text-xl font-bold">Placeholder Page</h1>
-    </div>
+    <Card className="border-border/50 bg-card/80 shadow-xl backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-xl">Create your account</CardTitle>
+        <CardDescription>Join FootyHub to save favorites and personalize your feed.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <RegisterForm />
+      </CardContent>
+    </Card>
   )
 }
