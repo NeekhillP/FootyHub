@@ -23,3 +23,26 @@ export async function getAuthUser() {
     profile: (profile as UserProfile | null) ?? null,
   }
 }
+
+export async function getAdminUser(auditContext: string) {
+  const { user, profile } = await getAuthUser()
+
+  if (!user || !profile) {
+    console.warn('[security][admin-authz] Forbidden: unauthenticated access attempt', {
+      auditContext,
+      userId: user?.id ?? null,
+    })
+    return { user: null, profile: null }
+  }
+
+  if (profile.role !== 'admin') {
+    console.warn('[security][admin-authz] Forbidden: non-admin access attempt', {
+      auditContext,
+      userId: user.id,
+      role: profile.role,
+    })
+    return { user: null, profile: null }
+  }
+
+  return { user, profile }
+}

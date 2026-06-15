@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getAppUrl } from '@/lib/auth/routes'
+import { getAuthCallbackUrl } from '@/lib/auth/routes'
 import {
   forgotPasswordSchema,
   signInSchema,
@@ -39,14 +39,12 @@ export async function signUpWithEmail(input: SignUpInput): Promise<ActionResult>
   }
 
   const supabase = await createClient()
-  const appUrl = getAppUrl()
-
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
       data: { username: parsed.data.username },
-      emailRedirectTo: `${appUrl}/auth/callback?next=/profile`,
+      emailRedirectTo: getAuthCallbackUrl('/profile'),
     },
   })
 
@@ -92,10 +90,8 @@ export async function resetPassword(input: ForgotPasswordInput): Promise<ActionR
   }
 
   const supabase = await createClient()
-  const appUrl = getAppUrl()
-
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${appUrl}/auth/callback?next=/settings`,
+    redirectTo: getAuthCallbackUrl('/settings'),
   })
 
   if (error) {
@@ -107,12 +103,10 @@ export async function resetPassword(input: ForgotPasswordInput): Promise<ActionR
 
 export async function signInWithGoogle(): Promise<ActionResult<{ url: string }>> {
   const supabase = await createClient()
-  const appUrl = getAppUrl()
-
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${appUrl}/auth/callback?next=/profile`,
+      redirectTo: getAuthCallbackUrl('/profile'),
     },
   })
 
