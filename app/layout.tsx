@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
+import { validateEnv } from '@/lib/env'
 import './globals.css'
+
+validateEnv()
 
 const inter = Inter({
   variable: '--font-sans',

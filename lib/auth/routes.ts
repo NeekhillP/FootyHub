@@ -1,3 +1,6 @@
+import { getSafeRedirectUrl, isValidRedirectUrl } from '@/lib/auth/redirect'
+import { validateEnv } from '@/lib/env'
+
 export const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/verify-email'] as const
 
 export const PROTECTED_ROUTES = ['/profile', '/settings', '/favorites'] as const
@@ -17,5 +20,22 @@ export function isAdminRoute(pathname: string): boolean {
 }
 
 export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  return validateEnv().NEXT_PUBLIC_APP_URL
+}
+
+export { isValidRedirectUrl }
+
+export function getValidatedRedirectUrl(
+  redirect: string | null | undefined,
+  fallback: string = '/profile'
+): string {
+  return getSafeRedirectUrl(redirect, fallback)
+}
+
+export function getAuthCallbackUrl(
+  redirect: string | null | undefined,
+  fallback: string = '/profile'
+): string {
+  const next = getValidatedRedirectUrl(redirect, fallback)
+  return `${getAppUrl()}/auth/callback?next=${encodeURIComponent(next)}`
 }

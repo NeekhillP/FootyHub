@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signInWithEmail } from '@/actions/auth'
+import { getSafeRedirectUrl } from '@/lib/auth/redirect'
 import { AuthDivider } from '@/components/auth/auth-divider'
 import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { Button } from '@/components/ui/button'
@@ -16,7 +17,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false)
 
   const callbackError = searchParams.get('error')
-  const next = searchParams.get('next') ?? '/profile'
+  const next = getSafeRedirectUrl(searchParams.get('next'), '/profile')
 
   async function handleSubmit(formData: FormData) {
     setLoading(true)
